@@ -10,7 +10,7 @@ Gm7 - - Eb7
 AbM7 - D7 -
 ... 
 ```
-The first line should contain the total number of measures in the song. Every line following that should contain a list of chords in each measure. Each line should only contain the chords in a single measure (with each chord separated with a space). This program currently assumes the inputted song is in 4/4 time, so there should only be 4 chords per measure. If a beat doesn't possess a chord change, use "-" to specify a blank chord.
+The first line should contain the total number of measures in the song. Every line following that should contain a list of chords in each measure. Each line should only contain the chords in a single measure (with each chord separated with a space). This program currently assumes the inputted song is in 4/4 time, so there should only be 4 chords per measure. If a beat doesn't possess a chord change, use "-" to specify a blank chord. Off-beat chord changes are not supported.
 
 ### Currently Supported Chord Symbols
 Basic Format of a Chord Symbol: `[Root][Scale][Top Note]([Modifiers])/[Bass Note]`
