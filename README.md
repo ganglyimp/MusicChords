@@ -69,11 +69,11 @@ All of these elements are optional except for the chord's root. When only a chor
 
 | Chord Portion   | Definition                                                                                                   | Example          |
 | ----------------| -------------------------------------------------------------------------------------------------------------|------------------|
-| Root            | Harmonic base of the chord; should be one of the 12 notes in the chromatic scale (sharps # not recognized)   | **C**m7, **Db**9 |
-| Scale           | The scale the chord is based on (ex. minor, major, diminished, etc.)                                         | C**m**7, E**sus**9 |
-| Top Note        | A number; denotes if the chord is a triad, 7th chord, or an extended chord                                   | AbM**7**, Bdim**9** |
-| Modifiers       | Altered notes or added notes; must be enclosed in parentheses                                                | C13(**b9#11**), Fm(**add11**) |
-| Bass Note       | A slash chord, denoted with a "/" followed by the note's name; denote if the bass note is something other than root | Gsus/**E**, Cm/**Ab** |
+| Root            | Harmonic base of the chord; should be one of the 12 notes in the chromatic scale (sharps # not recognized)   | **C**_m7_, **Db**_9_ |
+| Scale           | The scale the chord is based on (ex. minor, major, diminished, etc.)                                         | _C_**m**_7_, _E_**sus**_9_ |
+| Top Note        | A number; denotes if the chord is a triad, 7th chord, or an extended chord                                   | _AbM_**7**, _Bdim_**9** |
+| Modifiers       | Altered notes or added notes; must be enclosed in parentheses                                                | _C13_(**b9#11**), _Fm_(**add11**) |
+| Bass Note       | A slash chord, denoted with a "/" followed by the note's name; denote if the bass note is something other than root | _Gsus/_**E**, _Cm/_**Ab** |
 
 ### **Supported Scale Symbols**
 
