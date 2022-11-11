@@ -15,7 +15,7 @@ FM7 - Gm7 -
 Am7 - D7 -
 Bm7(b5) - Bbm7 Eb7
 F6/A - Abm7 Db7
-Gm7 - C7 _ _ Bb7
+Gm7 * * * C7 * * Bb7
 Em7 - A7(b9) -
 
 DM7 - Em7 -
