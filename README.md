@@ -73,7 +73,7 @@ All of these elements are optional except for the chord's root. When only a chor
 | Scale           | The scale the chord is based on (ex. minor, major, diminished, etc.)                                         | _C_**m**_7_, _E_**sus**_9_ |
 | Top Note        | A number; denotes if the chord is a triad, 7th chord, or an extended chord                                   | _AbM_**7**, _Bdim_**9** |
 | Modifiers       | Altered notes or added notes; must be enclosed in parentheses                                                | _C13_(**b9#11**), _Fm_(**add11**) |
-| Bass Note       | A slash chord, denoted with a "/" followed by the note's name; denote if the bass note is something other than root | _Gsus/_**E**, _Cm/_**Ab** |
+| Bass Note       | A slash chord, denoted with a "/" followed by the note's name; denote if the bass note is something other than root  | _Gsus/_**E**, _Cm/_**Ab** |
 
 ### **Supported Scale Symbols**
 
