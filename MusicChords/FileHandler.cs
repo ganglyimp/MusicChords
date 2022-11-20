@@ -19,21 +19,13 @@ namespace MusicChords
 
         public FileHandler(string filepath)
         {
-            //Open/Read File
+            // Open/Read File
             string[] lines = System.IO.File.ReadAllLines(filepath);
 
-            //First Line: # Bars
-            int temp;
-            if(!Int32.TryParse(lines[0], out temp))
-            {
-                Console.WriteLine("Error. Input file is in incorrect format.");
-                return;
-            }
-            
-            numBars = temp;
-            timeSig = 4;
+            // Header Line: NumBars | TimeSig | KeySig
+            string[] headerLine = lines[0].Split(' ');
 
-            //Rest of File: Chords
+            // Rest of File: Chords
             string[,] tempChords = new string[numBars, 4];
             for(int i = 0; i < numBars; i++)
             {
@@ -48,6 +40,12 @@ namespace MusicChords
             }
 
             chordArr = (string[,])tempChords.Clone();
+        }
+
+        private void ParseHeader(string[] headerLine) 
+        {
+            // 0 : NumBars
+            if(Int32.TryParse())
         }
     }
 }
