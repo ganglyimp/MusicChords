@@ -7,9 +7,17 @@ namespace MusicChords
         static void Main(string[] args) 
         {
             Console.Write("Input filepath: ");
-            string filename = Console.ReadLine();
+            //string filename = Console.ReadLine();
+            string filename = "sample-files/OverTheRainbow.txt";
 
+            if(filename == null) return;
             FileHandler fileData = new FileHandler(filename);
+
+            Console.WriteLine($"Number of Bars: {fileData.numBars}");
+            Console.WriteLine($"Time Signature: {fileData.timeSig.Item1}/{fileData.timeSig.Item2}");
+            Console.WriteLine("Key Signature: {0}", fileData.keySig.ToString());
+            
+            /*
             Song song = new Song(fileData);
 
             bool exitProgram = false;
@@ -87,6 +95,7 @@ namespace MusicChords
 
                 Console.WriteLine();
             }
+            */
 
         }
     }

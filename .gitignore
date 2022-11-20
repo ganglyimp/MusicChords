@@ -1,4 +1,5 @@
 .DS_Store
-MusicChords.sln
+.vscode
 MusicChords/obj
+MusicChords/bin
 MusicChords.csproj

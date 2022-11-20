@@ -5,6 +5,7 @@ namespace MusicChords
 {
     class Song 
     {
+        
         public struct Measure
         {
             public Chord[] bar;
@@ -27,6 +28,7 @@ namespace MusicChords
             }
         }
 
+        // Group measures into sections
         public Measure[] leadSheet { get; }
 
         public Song(FileHandler fileData)

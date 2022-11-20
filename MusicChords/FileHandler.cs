@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace MusicChords
 {
@@ -6,7 +7,7 @@ namespace MusicChords
     {
         /* EXPECTED FILE FORMAT:
          *  ___________________
-         * || 32               || Line 1: Number of measures
+         * || 32 4/4 Fm        || Line 1: NumMeasures | Time Signature | Key Signature
          * || Gm7 - FM7 -      || Line 2-EndOfFile: Chord progression, 1 line per measure
          * || EbM7 - Dm7 -     || NOTE: Assumes songs are in 4/4 time
          * || Gm7 - - FM7      ||
@@ -14,38 +15,56 @@ namespace MusicChords
          */
 
         public int numBars { get; }
-        public int timeSig { get; }
-        public string[,] chordArr { get; }
+        public Tuple<int, int> timeSig { get; }
+        public Chord keySig { get; }
+        public List<string> barList { get; }
 
         public FileHandler(string filepath)
         {
-            // Open/Read File
-            string[] lines = System.IO.File.ReadAllLines(filepath);
+            // OPEN/READ FILE
+            List<string> lines = System.IO.File.ReadAllLines(filepath).ToList<String>();
 
-            // Header Line: NumBars | TimeSig | KeySig
+
+            // PARSING HEADER LINE
+            // 0 : NumBars
             string[] headerLine = lines[0].Split(' ');
-
-            // Rest of File: Chords
-            string[,] tempChords = new string[numBars, 4];
-            for(int i = 0; i < numBars; i++)
+            int temp;
+            if(!Int32.TryParse(headerLine[0], out temp))
             {
-                string curr = lines[i + 1];
-                string[] split = curr.Split(' ');
-
-
-                for(int j = 0; j < timeSig; j++)
-                {
-                    tempChords[i,j] = split[j];
-                }
+                throw new TypeAccessException("Incorrect heading format. Measure count should be a number.");
             }
+            numBars = temp;
 
-            chordArr = (string[,])tempChords.Clone();
+            // 1 : TimeSig X/X
+            int top, bottom;
+            if(!Int32.TryParse(headerLine[1].Substring(0, 1), out top) || !Int32.TryParse(headerLine[1].Substring(2, 1), out bottom)) 
+            {
+                throw new TypeAccessException("Incorrect heading format. Time signature should contain two numbers.");
+            }
+            timeSig = new Tuple<int, int>(top, bottom);
+
+            // 2 : KeySig
+            keySig = new Chord(headerLine[2]);
+
+
+            // REST OF FILE: CHORDS
+            lines.RemoveAt(0);
+            barList = new List<string>();
+            barList.AddRange(lines);
+            
+            checkNumBars();
         }
 
-        private void ParseHeader(string[] headerLine) 
-        {
-            // 0 : NumBars
-            if(Int32.TryParse())
+        private void checkNumBars() {
+            int count = 0;
+
+            barList.ForEach((item) => {
+                if(item != "")  count++;
+            });
+
+            if(count != numBars) {
+                throw new IndexOutOfRangeException($"Number of bars in file does not match given bar count. File contains {count} bars.");
+            }
         }
     }
 }
