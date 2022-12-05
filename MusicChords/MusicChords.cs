@@ -6,25 +6,19 @@ namespace MusicChords
     {
         static void Main(string[] args) 
         {
-            Console.Write("Input filepath: ");
+            //Console.Write("Input filepath: ");
             //string filename = Console.ReadLine();
             string filename = "sample-files/OverTheRainbow.txt";
 
             if(filename == null) return;
             FileHandler fileData = new FileHandler(filename);
-
-            Console.WriteLine($"Number of Bars: {fileData.numBars}");
-            Console.WriteLine($"Time Signature: {fileData.timeSig.Item1}/{fileData.timeSig.Item2}");
-            Console.WriteLine("Key Signature: {0}", fileData.keySig.ToString());
             
-            /*
             Song song = new Song(fileData);
 
             bool exitProgram = false;
             while (!exitProgram)
             {
                 Console.WriteLine($"Currently loaded file: {filename}");
-                Console.WriteLine($"Total # of Measures: {fileData.numBars}");
 
                 Console.WriteLine();
                 Console.WriteLine("[1] Display Entire Lead Sheet\n" +
@@ -52,35 +46,15 @@ namespace MusicChords
                 }
                 else if(command == 2)
                 {
-                    Console.WriteLine();
-                    Console.Write("Input measure #: ");
-
-                    try
-                    {
-                        command = Convert.ToInt32(Console.ReadLine());
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine($"\nInvalid number.\n{e}\n");
-                        continue;
-                    }
-
-                    //Out of Range
-                    if(command < 1 || command > fileData.numBars)
-                    {
-                        Console.WriteLine("\nNumber out of range.\n");
-                        continue;
-                    }
-
-                    Console.WriteLine(song.GetMeasure(command).ToString());
+                    PrintChordFromMeasure(song);
                 }
                 else if(command == 3)
                 {
                     Console.WriteLine();
                     Console.Write("Input filepath: ");
-                    filename = Console.ReadLine();
+                    filename = Console.ReadLine() ?? "";
 
-                    fileData = new FileHandler(filename);
+                    fileData = new FileHandler(filename ?? "");
                     song = new Song(fileData);
                 }
                 else if(command == 4)
@@ -95,8 +69,33 @@ namespace MusicChords
 
                 Console.WriteLine();
             }
-            */
+        }
 
+        private static void PrintChordFromMeasure(Song song) 
+        {
+            int command = -1;
+
+            Console.WriteLine();
+            Console.Write("Input measure #: ");
+
+            try
+            {
+                command = Convert.ToInt32(Console.ReadLine());
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"\nInvalid number.\n{e}\n");
+                return;
+            }
+
+            //Out of Range
+            if(command < 1 || command > song.totalMeasures)
+            {
+                Console.WriteLine("\nNumber out of range.\n");
+                return;
+            }
+
+            Console.WriteLine(song.GetMeasure(command).ToString());
         }
     }
 }

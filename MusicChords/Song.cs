@@ -5,65 +5,205 @@ namespace MusicChords
 {
     class Song 
     {
-        
-        public struct Measure
-        {
-            public Chord[] bar;
-            int measureNum;
+        /* A Song consists of a group of sections 
+         * which contain a group of measures 
+         * which contain a group of chords
+         */
+        public struct Section {
+            public List<Measure> measures;
+            int sectionNum;
 
-            public Measure(int timeSig, int num)
-            {
-                bar = new Chord[timeSig];
-                measureNum = num;
+            public Section(int sectionNum) {
+                measures = new List<Measure>();
+                this.sectionNum = sectionNum;
             }
 
             public override string ToString()
             {
-                string output = "Measure " + measureNum + ": \n";
-
-                foreach(Chord chord in bar)
-                    output += "\t" + chord.ToString() + "\n";
+                string output = $"Section {sectionNum}: \n";
+                measures.ForEach((measure) => output += measure.ToString());
 
                 return output;
             }
         }
 
-        // Group measures into sections
-        public Measure[] leadSheet { get; }
-
-        public Song(FileHandler fileData)
+        public struct Measure
         {
-            leadSheet = new Measure[fileData.numBars];
-            string[,] chordList = fileData.chordArr;
+            public List<Chord> bar;
+            int measureNum;
 
-            for(int i = 0; i < fileData.numBars; i++)
+            public Measure(int num)
             {
-                Measure currMeasure = new Measure(fileData.timeSig, (i+1));
+                bar = new List<Chord>();
+                measureNum = num;
+            }
 
-                for(int j = 0; j < fileData.timeSig; j++)
-                {
-                    Chord currChord = new Chord(chordList[i, j]);
-                    currMeasure.bar[j] = currChord;
-                }
+            public override string ToString()
+            {
+                string output = "\tMeasure " + measureNum + ": \n";
 
-                leadSheet[i] = currMeasure;
+                foreach(Chord chord in bar)
+                    output += "\t\t" + chord.ToString() + "\n";
+
+                return output;
             }
         }
 
-        //Measures start counting from 1
+        public List<Section> leadSheet { get; }
+        public int totalMeasures { get; }
+        public Tuple<int, int> timeSig { get; }
+        public Chord keySig { get; }
+
+        public Song(FileHandler fileData)
+        {
+            timeSig = fileData.timeSig;
+            keySig = fileData.keySig;
+
+            leadSheet = new List<Section>();
+
+            int sectionCount = 0, measureCount = 0;
+            Section tempSection = new Section(sectionCount);
+            for(int i = 0; i < fileData.songLines.Count; i++)
+            {
+                string currLine = fileData.songLines[i];
+
+                if(i != 0 && currLine == "")
+                {
+                    // End of previous section, start of new section
+                    leadSheet.Add(tempSection);
+                    
+                    sectionCount++;
+                    tempSection = new Section(sectionCount);
+                }
+                else 
+                {
+                    // Line is a measure
+                    float spacerValue = ParseTimeSpacer(currLine);
+                    string[] measureTokens = currLine.Split(' ');
+
+                    // Check if measure has correct number of tokens
+                    if(measureTokens.Length / spacerValue != timeSig.Item1 / spacerValue)
+                    {
+                        throw new Exception($"In Measure {i}: expected {timeSig.Item1 / spacerValue} tokens." +
+                                            $"Received {measureTokens.Length / spacerValue} tokens.");
+                    }
+
+                    Measure currMeasure = new Measure(measureCount);
+                    currMeasure.bar.AddRange(ParseMeasure(measureTokens, spacerValue));
+                    tempSection.measures.Add(currMeasure);
+                    
+                    measureCount++;
+                }
+            }
+
+            // Add last section
+            leadSheet.Add(tempSection);
+            totalMeasures = measureCount;
+        }
+
+        public Section GetSection(int section)
+        {
+            // Sections start count from from 1
+            return leadSheet[section-1];
+        }
+        
         public Measure GetMeasure(int measure)
         {
-            return leadSheet[measure-1];
+            // Measures start counting from 1
+            int measureCount = 0;
+            for(int i = 0; i < leadSheet.Count; i++)
+            {
+                Section currSection = leadSheet[i];
+                if(currSection.measures.Count <= measure) 
+                {
+                    return currSection.measures[(measure-1) - measureCount];
+                }
+
+                measureCount += currSection.measures.Count;
+            }
+
+            throw new IndexOutOfRangeException("Invalid measure number.");
         }
 
         public override string ToString()
         {
             string output = "";
 
-            foreach (Measure measure in leadSheet)
-                output += measure.ToString();
+            foreach (Section section in leadSheet)
+                output += section.ToString();
 
             return output;
+        }
+
+        private float ParseTimeSpacer(string measureLine)
+        {
+            char[] timeSpacers = {'=', '-', '*', '\''};
+
+            float spacerValue = 0.0f;
+            foreach(char spacer in timeSpacers)
+            {
+                // Did not find current spacer in line
+                if(measureLine.IndexOf(spacer) == -1) continue;
+
+                // A different spacer was found previously 
+                if(spacerValue != 0.0f)
+                {
+                    throw new Exception("A measure line can only contain one kind of spacer.");
+                }
+
+                switch(spacer)
+                {
+                    case '=' :
+                        spacerValue = 2.0f;
+                        break;
+                    case '-' : 
+                        spacerValue = 1.0f;
+                        break;
+                    case '*' :
+                        spacerValue = 0.5f;
+                        break;
+                    case '\'' :
+                        spacerValue = 0.25f;
+                        break;
+                }
+            }
+
+            // No valid spacer characters were found
+            if(spacerValue == 0.0f) 
+            {   
+                throw new Exception("No valid spacer characters were found. Refer to the README file for a list of valid spacers."); 
+            }
+
+            // Can't evenly divide measure
+            if(spacerValue == 2.0f && timeSig.Item1 % 2 == 1)
+            {   
+                throw new Exception("2-beat spacer used with an odd time signature. Can't evenly divide measure. Please use a smaller time spacer.");    
+            }
+
+            return spacerValue;
+        }
+
+        private List<Chord> ParseMeasure(string[] measureTokens, float spacerValue)
+        {
+            List<Chord> chordList = new List<Chord>();
+
+            for(int i = 0; i < measureTokens.Length; i++)
+            {
+                if(IsParserCharacter(measureTokens[i])) continue;
+
+                double beat = i * spacerValue;
+
+                chordList.Add(new Chord(measureTokens[i], beat));
+            }
+
+            return chordList;
+        }
+
+        private bool IsParserCharacter(string item)
+        {
+            string[] spacerChars = {"=", "-", "*", "'"};
+
+            return Array.Exists(spacerChars, (c) => c == item);
         }
     }
 }

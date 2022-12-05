@@ -1,11 +1,11 @@
 # MusicChords
 
-This is a very basic, barebones program that can read in a formatted txt file that contains a list of chord symbols (using lead sheet notation) and calculate what notes belong to each chord. Each note is given a numeric representation in the range from 0 - 11, with C being represented as 0. 
+This is a very basic, bare-bones program that can read in a formatted txt file that contains a list of chord symbols (using lead sheet notation) and calculate what notes belong to each chord. Each note is given a numeric representation in the range from 0 - 11, with C being represented as 0.
 
 ## Text File Format
 
 ```
-32 4/4 EbM
+4/4 EbM
 
 EbM7 - Cm7 -
 Gm7 - - Eb7
@@ -27,13 +27,12 @@ The header line consists of three elements, delimited by a space. This line cont
 
 | Name           | Description                                          | Example |
 |----------------|------------------------------------------------------|---------|
-| Measure Count  | Total number of measures in the file.                | 32      |
 | Time Signature | Follows music notation rules for time signatures.    | 4/4     |
 | Key Signature  | Key signature for song. Only accepts major or minor. | EbM     |
 
 ### **Chord Sections**
 
-An empty line marks the start of a new chord sections. A song consists of one or more chord sections. Each chord section contains a group of measures, each delimited by a new line. And each measure contains a combinaton of chord symbols and time spacers. The provided example above consists of two chord sections, each consisting of four measures.
+An empty line marks the start of a new chord sections. A song consists of one or more chord sections. Each chord section contains a group of measures, each delimited by a new line. And each measure contains a combination of chord symbols and time spacers. The provided example above consists of two chord sections, each consisting of four measures.
 
 ---
 
@@ -41,11 +40,13 @@ An empty line marks the start of a new chord sections. A song consists of one or
 
 Time spacers more or less function as a musical rest. Only one kind of time spacer may be used in each individual measure. The value of the time spacer also determines the "duration" of the chord symbol. For example, if you use a 1 beat spacer in a measure, then chord symbols will also all take up one beat. The value of the time spacers are dependant on the time signature provided in the header. In a 4/4 time signature, 1 beat spacers are worth a quarter note, but in a 6/8 time signature, they're worth an eighth note. All measure elements must add up to align to the time signature.
 
+Each line needs to have at least 1 spacer character. These characters are used to determine on which beat a chord should be placed.
+
 | Symbol | Description                                                               |
 |--------|---------------------------------------------------------------------------|
 | =      | 2 beat spacer. In a 4/4 time signature, it represents a half note.        |
 | -      | 1 beat spacer. In a 4/4 time signature, it represents a quarter note.     |
-| *      | 1/2 beat spacer. In a 4/4 time signature, it represents an eighth note.    |
+| *      | 1/2 beat spacer. In a 4/4 time signature, it represents an eighth note.   |
 | '      | 1/4 beat spacer. In a 4/4 time signature, it represents a sixteenth note. |
 
 ### Examples

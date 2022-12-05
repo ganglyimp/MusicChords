@@ -4,6 +4,8 @@ using System.Text.RegularExpressions;
 
 namespace MusicChords
 {
+    //TODO: Allow for sharps. Store more info about scale position (2nd, 5th, flat 7, etc)
+
     /* Representation of Notes
      *  |   |   | |   |   |   |   | |   | |   |   |
      *  |   |   | |   |   |   |   | |   | |   |   |
@@ -23,21 +25,21 @@ namespace MusicChords
      *  Suspended: sus
      *  Add[number]: add
      *  
-     *  Any chord mods must be placed within paraenthesis ex. CbM7(b5#11)
+     *  Any chord mods must be placed within parentheses ex. CbM7(b5#11)
      */
 
     class Chord
     {
         public string name { get; }
         public List<int> notes { get; }
+        public double beat { get; }
 
-        public Chord(string n)
+        public Chord(string n, double beat)
         {
+            this.beat = beat;
+            
             name = n;
             notes = new List<int>();
-
-            if (name.Equals("-"))
-                return;
 
             int root;
             string scale;
@@ -62,6 +64,7 @@ namespace MusicChords
             //GET ROOT
             root = GetRoot(n);
 
+            // Note: root length can be one or two chars (ex. C and Cb)s
             n = (NumToNote(root).Length == 2) ? n.Substring(2) : n.Substring(1);
 
             //CHECK FOR SCALE
@@ -99,7 +102,7 @@ namespace MusicChords
 
         public override string ToString()
         {
-            string chord = name + ": ";
+            string chord = $"{name} ({beat}): ";
             foreach (int note in notes)
                 chord += NumToNote(note) + " ";
 
