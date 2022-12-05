@@ -266,8 +266,8 @@ namespace MusicChords
                     int addInd = mod.LastIndexOf('d');
                     if(addInd != -1)
                     {
-                        string posi = mod.Substring(addInd + 1);
-                        chordPositions.Add(posi);
+                        string position = mod.Substring(addInd + 1);
+                        chordPositions.Add(position);
                         continue;
                     }
 

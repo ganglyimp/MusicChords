@@ -63,7 +63,7 @@ namespace MusicChords
 
             int sectionCount = 0, measureCount = 0;
             Section tempSection = new Section(sectionCount);
-            for(int i = 0; i < fileData.songLines.Count; i++)
+            for(int i = 1; i < fileData.songLines.Count; i++)
             {
                 string currLine = fileData.songLines[i];
 
@@ -79,7 +79,7 @@ namespace MusicChords
                 {
                     // Line is a measure
                     float spacerValue = ParseTimeSpacer(currLine);
-                    string[] measureTokens = currLine.Split(' ');
+                    string[] measureTokens = currLine.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
                     // Check if measure has correct number of tokens
                     if(measureTokens.Length / spacerValue != timeSig.Item1 / spacerValue)
