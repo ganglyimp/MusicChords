@@ -1,0 +1,5 @@
+.DS_Store
+.vscode
+MusicChords/obj
+MusicChords/bin
+MusicChords.csproj
