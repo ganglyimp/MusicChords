@@ -6,15 +6,6 @@ namespace MusicChords
 {
     class FileHandler 
     {
-        /* EXPECTED FILE FORMAT:
-         *  ___________________
-         * || 32 4/4 Fm        || Line 1: NumMeasures | Time Signature | Key Signature
-         * || Gm7 - FM7 -      || Line 2-EndOfFile: Chord progression, 1 line per measure
-         * || EbM7 - Dm7 -     || NOTE: Assumes songs are in 4/4 time
-         * || Gm7 - - FM7      ||
-         * || [...]            ||
-         */
-
         public Tuple<int, int> timeSig { get; }
         public Chord keySig { get; }
         public List<string> songLines { get; }

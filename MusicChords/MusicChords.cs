@@ -6,9 +6,8 @@ namespace MusicChords
     {
         static void Main(string[] args) 
         {
-            //Console.Write("Input filepath: ");
-            //string filename = Console.ReadLine();
-            string filename = "sample-files/OverTheRainbow.txt";
+            Console.Write("Input filepath: ");
+            string filename = Console.ReadLine() ?? "";
 
             if(filename == null) return;
             FileHandler fileData = new FileHandler(filename);
@@ -23,8 +22,9 @@ namespace MusicChords
                 Console.WriteLine();
                 Console.WriteLine("[1] Display Entire Lead Sheet\n" +
                                   "[2] Display Chords From Specific Measure\n" +
-                                  "[3] Load New File\n" +
-                                  "[4] Exit\n");
+                                  "[3] Parse Chord\n" +
+                                  "[4] Load New File\n" +
+                                  "[5] Exit\n");
 
                 Console.Write("Input command #: ");
                 int command = -1;
@@ -48,7 +48,23 @@ namespace MusicChords
                 {
                     PrintChordFromMeasure(song);
                 }
-                else if(command == 3)
+                else if(command == 3) 
+                {
+                    Console.WriteLine();
+                    Console.Write("Input chord symbol: ");
+                    string chordSymbol = Console.ReadLine() ?? "";
+
+                    try 
+                    {
+                        Chord chord = new Chord(chordSymbol, 0);
+                        Console.WriteLine(chord.ToString());
+                    } 
+                    catch (Exception) 
+                    {
+                        Console.WriteLine("Syntax Error. Could not read chord symbol.");
+                    }
+                }
+                else if(command == 4)
                 {
                     Console.WriteLine();
                     Console.Write("Input filepath: ");
@@ -57,7 +73,7 @@ namespace MusicChords
                     fileData = new FileHandler(filename ?? "");
                     song = new Song(fileData);
                 }
-                else if(command == 4)
+                else if(command == 5)
                 {
                     exitProgram = true;
                 }

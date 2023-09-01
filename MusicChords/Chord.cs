@@ -4,8 +4,6 @@ using System.Text.RegularExpressions;
 
 namespace MusicChords
 {
-    //TODO: Allow for sharps. Store more info about scale position (2nd, 5th, flat 7, etc)
-
     /* Representation of Notes
      *  |   |   | |   |   |   |   | |   | |   |   |
      *  |   |   | |   |   |   |   | |   | |   |   |
@@ -30,73 +28,98 @@ namespace MusicChords
 
     class Chord
     {
+        private enum TwelveTones { C, Db, D, Eb, E, F, Gb, G, Ab, A, Bb, B }; 
+        private const string CHORD_REGEX = @"([A-G]{1}[b#]?)((?:M|m|dim|o|°|ø|O|0|aug|\+|t|Δ|\^|6\/9)?[1-9]{0,2})(\((?:(?:b|#|add|sus)[1-9]{1,2})*\))?(\/[A-G]{1}[b#]?)?";
+        private Regex SCALE_REGEX = new Regex(@"(M|m|dim|o|°|ø|O|0|aug|\+|t|Δ|\^|6\/9)?([1-9]{0,2})");
+        private Dictionary<string, List<string>> MUSIC_SCALES = new Dictionary<string, List<string>>
+        {
+            // Major
+            { "M", new List<string> {"1", "3", "5"} },
+            // Minor
+            { "m", new List<string> {"1", "b3", "5"} },
+            // Diminished
+            { "dim", new List<string> {"1", "b3", "b5"} },
+            { "o", new List<string> {"1", "b3", "b5"} },
+            { "°", new List<string> {"1", "b3", "b5"} },
+            // Half-Diminished
+            { "ø", new List<string> {"1", "b3", "b5", "b7"} },
+            { "O", new List<string> {"1", "b3", "b5", "b7"} },
+            { "0", new List<string> {"1", "b3", "b5", "b7"} },
+            // Augmented
+            { "aug", new List<string> {"1", "3", "#5"} },
+            { "+", new List<string> {"1", "3", "#5"} },
+            // Major 7
+            { "t", new List<string> {"1", "3", "5", "7"} },
+            { "Δ", new List<string> {"1", "3", "5", "7"} },
+            { "^", new List<string> {"1", "3", "5", "7"} },
+            // 6/9
+            { "6/9", new List<string> {"1", "3", "5", "6", "9"} },
+            { "6-9", new List<string> {"1", "3", "5", "6", "9"} },
+            // Dom - default
+            { "dom", new List<string> {"1", "3", "5"}}
+        };
+
         public string name { get; }
         public List<int> notes { get; }
         public double beat { get; }
 
-        public Chord(string n, double beat)
+        public Chord(string name, double beat)
         {
-            this.beat = beat;
-            
-            name = n;
-            notes = new List<int>();
+            Regex chordRegex = new Regex(CHORD_REGEX);
+            if(!chordRegex.IsMatch(name)) throw new ArgumentException($"Could not parse given symbol: {name}");
 
-            int root;
-            string scale;
-            int topNote;
-            List<string> mods;
-            int bassNote;
+            this.beat = beat;            
+            this.name = name;
+            this.notes = new List<int>();
 
-            if(NoteToNum(n) != -1)
+            List<string> splitSymbols = chordRegex.Split(name).Where(s => s != String.Empty).ToList();
+
+            int root = NoteToNum(splitSymbols[0]);
+            string scale = "dom";
+            int topNote = 5;
+            List<string> mods = new List<string>();
+            int bassNote = -1;
+
+            // Chord symbol is a simple triad
+            if(splitSymbols.Count < 2)
             {
-                //Simple Triad
-                root = NoteToNum(name);
-                scale = "dom";
-                topNote = 5;
-                mods = new List<string>();
-                bassNote = -1;
-
                 SetNotesInChord(root, scale, topNote, mods, bassNote);
-
                 return;
             }
 
-            //GET ROOT
-            root = GetRoot(n);
+            for(int i = 1; i < splitSymbols.Count; i++) 
+            {
+                string currToken = splitSymbols[i];
 
-            // Note: root length can be one or two chars (ex. C and Cb)s
-            n = (NumToNote(root).Length == 2) ? n.Substring(2) : n.Substring(1);
+                // Token is a mod
+                if(currToken.StartsWith('(')) 
+                {
+                    mods = GetMods(currToken);
+                }
+                // Token is a slash symbol
+                else if(currToken.StartsWith('/')) 
+                {
+                    bassNote = NoteToNum(currToken.Substring(1));
+                }
+                // Token is a scale
+                else 
+                {
+                    List<string> splitScale = SCALE_REGEX.Split(currToken).Where(s => s != String.Empty).ToList();
 
-            //CHECK FOR SCALE
-            scale = GetScale(n);
+                    if(splitScale.Count > 1) 
+                    {
+                        scale = splitScale[0];
+                        Int32.TryParse(splitScale[1], out topNote);
+                    }
+                    else 
+                    {
+                        // Check whether we have a top note or a scale
+                        if(Int32.TryParse(splitScale[0], out topNote)) continue;
+                        scale = splitScale[0];
+                    }
+                }
+            }
 
-            if (scale.Equals("6/9"))
-                n = n.Substring(n.IndexOf('9') + 1);
-            else if(!scale.Equals("dom"))
-                n = n.Substring(scale.Length);
-
-            //CHECK FOR TOP NOTE
-            topNote = GetTopNote(n);
-
-            int modIndex = n.IndexOf('(');
-            if (modIndex != -1)
-                n = n.Substring(modIndex);
-
-            //CHECK FOR MODS
-            mods = GetMods(n);
-
-            if(mods.Count > 0)
-                n = n.Substring(n.IndexOf(')'));
-
-            //SLASH CHORD?
-            int slashIndex = n.IndexOf('/');
-
-            if (slashIndex != -1)
-                bassNote = NoteToNum(n.Substring(slashIndex + 1));
-            else
-                bassNote = -1;
-
-            //GET NOTES IN CHORD
             SetNotesInChord(root, scale, topNote, mods, bassNote);
         }
 
@@ -111,140 +134,40 @@ namespace MusicChords
 
 
         //HELPER FUNCTIONS
-        private int GetRoot(string chord)
-        {
-            string rootName = (chord[1].Equals('b')) ? chord.Substring(0, 2) : chord.Substring(0, 1);
-
-            return NoteToNum(rootName);
-        }
-
-        private string GetScale(string chord)
-        {
-            int nextNum = chord.IndexOfAny(new char[] { '1', '2', '3', '4', '5', '6', '7', '8', '9', '(', '/' });
-
-            //There is no top note or other modifications specified in chord.
-            if (nextNum == -1)
-                return chord;
-            //Scale specified
-            else if (nextNum != 0)
-                return chord.Substring(0, nextNum);
-            //chord[0] is a number
-            else
-            {
-                //Check if 6/9 chord
-                if (chord.StartsWith("69") || chord.StartsWith("6/9") || chord.StartsWith("6-9"))
-                    return "6/9";
-                //Dominant chord (no scale specified)
-                else
-                    return "dom";
-            }
-        }
-
-        private int GetTopNote(string chordSymbol)
-        {
-            int index = chordSymbol.IndexOfAny(new char[] { '(', '/' });
-
-            if (index == -1)
-            {
-                int topNote;
-                if (Int32.TryParse(chordSymbol, out topNote))
-                    return topNote;
-            }
-            else if (index > 0)
-            {
-                int topNote;
-                if (Int32.TryParse(chordSymbol.Substring(0, index), out topNote))
-                    return topNote;
-            }
-                
-
-            return -1;
-        }
-
-        private List<string> GetMods(string chordSymbol)
+        private List<string> GetMods(string modList)
         {
             List<string> mods = new List<string>();
 
-            int startInd = chordSymbol.IndexOf('(');
-            int endInd = chordSymbol.IndexOf(')');
+            int startInd = modList.IndexOf('(');
+            int endInd = modList.IndexOf(')');
 
-            if (startInd == -1 || endInd == -1)
-                return mods;
+            // No valid mod list in symbol. Return empty list. 
+            if (startInd == -1 || endInd == -1) return mods;
 
-            chordSymbol = chordSymbol.Substring(startInd+1, endInd-1);
+            string modsWithoutParens = modList.Substring(startInd+1, endInd-1);
 
-            string[] parts = Regex.Split(chordSymbol, @"(?=b|#|add)");
+            string[] parts = Regex.Split(modsWithoutParens, @"(?=b|#|add|sus)");
             foreach (string part in parts)
                 if(part.Length > 0)
                     mods.Add(part);
 
             return mods;
-
         }
 
         private void SetNotesInChord(int root, string scale, int topNote, List<string> mods, int bassNote)
         {
-            List<string> chordPositions;
-
-            //PARSE SCALE
-            switch(scale)
-            {
-                // Major
-                case "M":
-                    chordPositions = new List<string> { "1", "3", "5" };
-                    break;
-                // Minor
-                case "m":
-                    chordPositions = new List<string> { "1", "b3", "5" };
-                    break;
-                // Diminished
-                case "dim":
-                case "o":
-                case "°":
-                    chordPositions = new List<string> { "1", "b3", "b5"};
-                    if (topNote == -1) { chordPositions.Add("6"); }
-                    break;
-                // Half-Diminished
-                case "ø":
-                case "O":
-                case "0":
-                    chordPositions = new List<string> { "1", "b3", "b5", "b7" };
-                    break;
-                // Augmented
-                case "aug":
-                case "+":
-                    chordPositions = new List<string> { "1", "3", "#5" };
-                    break;
-                // Major 7
-                case "t":
-                case "Δ":
-                case "^":
-                    chordPositions = new List<string> { "1", "3", "5", "7" };
-                    break;
-                // 6/9
-                case "6/9":
-                    chordPositions = new List<string> { "1", "3", "5", "6", "9" };
-                    break;
-                // Suspended
-                case "sus":
-                    chordPositions = new List<string> { "1", "4", "5" };
-                    break;
-                default:
-                    chordPositions = new List<string> { "1", "3", "5" };
-                    break;
-            }
+            List<string> chordPositions = (MUSIC_SCALES.ContainsKey(scale)) ? MUSIC_SCALES[scale] : MUSIC_SCALES["dom"];
 
             //PARSE TOP NOTE
             if(topNote != -1)
             {
-                String lastItem = chordPositions[chordPositions.Count-1];
-                int tempInd = lastItem.IndexOfAny(new char[] { '1', '2', '3', '4', '5', '6', '7', '8', '9'});
-                lastItem = lastItem.Substring(tempInd);
+                string lastItem = chordPositions[chordPositions.Count-1];
+                if(lastItem.Length > 1) lastItem = lastItem.Substring(1);
 
                 int currPosition;
                 if (topNote == 6)
                     chordPositions.Add("6");
-                else if (Int32.TryParse(lastItem, out currPosition))
+                else if (Int32.TryParse(lastItem.ToString(), out currPosition))
                 {
                     while (currPosition < topNote)
                     {
@@ -255,37 +178,44 @@ namespace MusicChords
             }
 
             //PARSE MODS
-            if (!scale.Equals("M") && chordPositions.Contains("7"))
+            if (!scale.Equals("M") && chordPositions.Contains("7")) //Special case: dom7 chord
                 mods.Add("b7");
 
-            if(mods.Count > 0)
+            foreach(string mod in mods)
             {
-                foreach(string mod in mods)
+                //If it's an "add" mod, append to end
+                int addInd = mod.LastIndexOf('d');
+                if(addInd != -1)
                 {
-                    //If it's an "add" mod, append to end
-                    int addInd = mod.LastIndexOf('d');
-                    if(addInd != -1)
-                    {
-                        string position = mod.Substring(addInd + 1);
-                        chordPositions.Add(position);
-                        continue;
-                    }
-
-                    //See if note already in chordPositions list : modify / add
-                    string pos = mod.Substring(1);
-                    bool posAdded = false;
-                    for(int i = 0; i < chordPositions.Count; i++)
-                    {
-                        if (pos.Equals(chordPositions[i]))
-                        {
-                            chordPositions[i] = mod;
-                            posAdded = true;
-                        }
-                    }
-
-                    if (!posAdded)
-                        chordPositions.Add(mod);
+                    string position = mod.Substring(addInd + 1);
+                    chordPositions.Add(position);
+                    continue;
                 }
+
+                //If it's a "sus" mod, replace the third (if present) with the sus note
+                int susInd = mod.LastIndexOf('s');
+                if(susInd != -1) 
+                {
+                    string position = mod.Substring(susInd + 1);
+                    int theThird = chordPositions.FindIndex(n => n.IndexOf('3') != -1);
+                    if(theThird != -1) chordPositions[theThird] = position;
+                    else chordPositions.Add(position);
+                    continue;
+                }
+
+                //See if note already in chordPositions list : modify / add
+                string pos = mod.Substring(1);
+                bool posAdded = false;
+                for(int i = 0; i < chordPositions.Count; i++)
+                {
+                    if (pos.Equals(chordPositions[i]))
+                    {
+                        chordPositions[i] = mod;
+                        posAdded = true;
+                    }
+                }
+                if (!posAdded)
+                    chordPositions.Add(mod);
             }
 
             //CONVERT RELATIVE NOTES TO ACTUAL NOTE VALUES
@@ -313,23 +243,28 @@ namespace MusicChords
 
         private int NoteToNum(string note)
         {
-            string[] twelveTones = { "C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B" };
+            TwelveTones noteNumber;
+            if(Enum.TryParse(note, true, out noteNumber))
+                return (int)noteNumber;
+            
+            // If not an edge case # or b, root note is likely invalid.
+            if(note.Length < 2 && (note[1] != '#' || note[1] != 'b'))
+                return -1;
 
-            for (int i = 0; i < 12; i++)
-                if (note.Equals(twelveTones[i]))
-                    return i;
+            char root = note[0];
+            bool isSharp = note[1] == '#';
 
-            return -1;
+            int rootValue = NoteToNum(root.ToString());
+            if(rootValue == -1) return rootValue;
+            return ((isSharp) ? ++rootValue : --rootValue) % 12;
         }
 
         private string NumToNote(int num)
         {
-            string[] twelveTones = { "C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B" };
-
-            if (num < 0 || num > 11)
+            if(!Enum.IsDefined(typeof(TwelveTones), num))
                 return "NULL";
 
-            return twelveTones[num];
+            return ((TwelveTones)num).ToString();
         }
 
         private int GetNoteFromPos(int root, int position, string flatSharp)
@@ -349,7 +284,7 @@ namespace MusicChords
             }
 
             if (flatSharp.Equals("b"))
-                note = (note - 1 < 0) ? (12 - note) : note-1;
+                note = (note - 1 < 0) ? 11 : (note - 1) % 12;
             else if (flatSharp.Equals("#"))
                 note = (note + 1) % 12;
 

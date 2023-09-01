@@ -3,12 +3,9 @@ using System.Collections.Generic;
 
 namespace MusicChords
 {
+    // A Song consists of a group of sections, which contains a group of measures, which contains a group of chords.
     class Song 
     {
-        /* A Song consists of a group of sections 
-         * which contain a group of measures 
-         * which contain a group of chords
-         */
         public struct Section {
             public List<Measure> measures;
             int sectionNum;
@@ -49,6 +46,11 @@ namespace MusicChords
             }
         }
 
+        private Dictionary<string, float> TIME_SPACERS = new Dictionary<string, float>() 
+        {
+            { "=", 2 }, { "-", 1 }, { "*", 0.5f }, { "'", 0.25f }
+        };
+         
         public List<Section> leadSheet { get; }
         public int totalMeasures { get; }
         public Tuple<int, int> timeSig { get; }
@@ -78,14 +80,14 @@ namespace MusicChords
                 else 
                 {
                     // Line is a measure
-                    float spacerValue = ParseTimeSpacer(currLine);
                     string[] measureTokens = currLine.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    float spacerValue = ParseTimeSpacer(measureTokens);
 
                     // Check if measure has correct number of tokens
-                    if(measureTokens.Length / spacerValue != timeSig.Item1 / spacerValue)
+                    if(measureTokens.Length != timeSig.Item1 / spacerValue)
                     {
                         throw new Exception($"In Measure {i}: expected {timeSig.Item1 / spacerValue} tokens." +
-                                            $"Received {measureTokens.Length / spacerValue} tokens.");
+                                            $"Received {measureTokens.Length} tokens.");
                     }
 
                     Measure currMeasure = new Measure(measureCount);
@@ -109,18 +111,14 @@ namespace MusicChords
         
         public Measure GetMeasure(int measure)
         {
-            // Measures start counting from 1
             int measureCount = 0;
-            for(int i = 0; i < leadSheet.Count; i++)
-            {
-                Section currSection = leadSheet[i];
-                if(currSection.measures.Count <= measure) 
-                {
-                    return currSection.measures[(measure-1) - measureCount];
-                }
-
-                measureCount += currSection.measures.Count;
-            }
+            foreach(Section section in leadSheet) {
+                int sectionEnd = measureCount + (section.measures.Count-1);
+                if(measure <= sectionEnd)
+                    return section.measures[measure - measureCount];
+                
+                measureCount += section.measures.Count; 
+            };
 
             throw new IndexOutOfRangeException("Invalid measure number.");
         }
@@ -135,50 +133,27 @@ namespace MusicChords
             return output;
         }
 
-        private float ParseTimeSpacer(string measureLine)
+        private float ParseTimeSpacer(string[] measureTokens)
         {
-            char[] timeSpacers = {'=', '-', '*', '\''};
-
             float spacerValue = 0.0f;
-            foreach(char spacer in timeSpacers)
+            foreach(string token in measureTokens) 
             {
-                // Did not find current spacer in line
-                if(measureLine.IndexOf(spacer) == -1) continue;
+                if(!TIME_SPACERS.ContainsKey(token)) continue;
 
-                // A different spacer was found previously 
-                if(spacerValue != 0.0f)
-                {
-                    throw new Exception("A measure line can only contain one kind of spacer.");
-                }
-
-                switch(spacer)
-                {
-                    case '=' :
-                        spacerValue = 2.0f;
-                        break;
-                    case '-' : 
-                        spacerValue = 1.0f;
-                        break;
-                    case '*' :
-                        spacerValue = 0.5f;
-                        break;
-                    case '\'' :
-                        spacerValue = 0.25f;
-                        break;
-                }
+                // Mixed time spacers in a single measure
+                if(spacerValue != 0.0f && spacerValue != TIME_SPACERS[token])
+                    throw new Exception("Multiple time spacers detected in a single measure. Avoid mixing time spacers.");
+                
+                spacerValue = TIME_SPACERS[token];
             }
 
             // No valid spacer characters were found
             if(spacerValue == 0.0f) 
-            {   
                 throw new Exception("No valid spacer characters were found. Refer to the README file for a list of valid spacers."); 
-            }
 
             // Can't evenly divide measure
             if(spacerValue == 2.0f && timeSig.Item1 % 2 == 1)
-            {   
                 throw new Exception("2-beat spacer used with an odd time signature. Can't evenly divide measure. Please use a smaller time spacer.");    
-            }
 
             return spacerValue;
         }

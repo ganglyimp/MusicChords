@@ -73,7 +73,7 @@ All of these elements are optional except for the chord's root. When only a chor
 | Root            | Harmonic base of the chord; should be one of the 12 notes in the chromatic scale (sharps # not recognized)   | **C**_m7_, **Db**_9_ |
 | Scale           | The scale the chord is based on (ex. minor, major, diminished, etc.)                                         | _C_**m**_7_, _E_**sus**_9_ |
 | Top Note        | A number; denotes if the chord is a triad, 7th chord, or an extended chord                                   | _AbM_**7**, _Bdim_**9** |
-| Modifiers       | Altered notes or added notes; must be enclosed in parentheses                                                | _C13_(**b9#11**), _Fm_(**add11**) |
+| Modifiers       | Altered notes, added notes, or sus notes; must be enclosed in parentheses                                    | _C13_(**b9#11**), _Fm_(**add11**) |
 | Bass Note       | A slash chord, denoted with a "/" followed by the note's name; denote if the bass note is something other than root  | _Gsus/_**E**, _Cm/_**Ab** |
 
 ### **Supported Scale Symbols**
@@ -87,7 +87,8 @@ All of these elements are optional except for the chord's root. When only a chor
 | Augmented       | aug, +       |
 | Major 7         | t, Δ, ^      |
 | 6/9             | 69, 6-9, 6/9 |
-| Suspended       | sus          |
+
+NOTE: ALT chords are not supported due to their context sensitive nature. They should instead be substituted with a more explicit chord spelling (ex. `C7(b5#5)` instead of `C7alt`).
 
 ---
 
