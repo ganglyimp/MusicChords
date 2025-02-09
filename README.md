@@ -1,6 +1,6 @@
 # MusicChords
 
-This is a very basic, bare-bones program that can read in a formatted txt file that contains a list of chord symbols (using lead sheet notation) and calculate what notes belong to each chord. Each note is given a numeric representation in the range from 0 - 11, with C being represented as 0.
+This is a very basic, bare-bones program that can read in a formatted txt file that contains a list of chord symbols (using lead sheet notation) and calculate what notes belong to each chord. Each note is given a numeric representation in the range from 0 - 11, with C being represented as 0. 
 
 ## Text File Format
 
